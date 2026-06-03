@@ -63,7 +63,9 @@ services:
         condition: service_healthy
 
   backend:
-    build: ./backend
+    build:
+      context: ./backend
+      network: host
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     ports:
       - "8000:8000"
@@ -87,7 +89,9 @@ services:
         condition: service_healthy
 
   worker:
-    build: ./backend
+    build:
+      context: ./backend
+      network: host
     command: celery -A app.workers.celery_app worker --loglevel=info --concurrency=4
     environment:
       DATABASE_URL: postgresql://user:password@postgres:5432/mlnest
