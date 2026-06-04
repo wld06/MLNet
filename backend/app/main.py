@@ -6,6 +6,7 @@ from app.api import cleaning, datasets, deploy, experiments, runs
 from app.core.exceptions import (
     DatasetNotFoundError,
     DatasetTooLargeError,
+    DatasetVersionNotFoundError,
     ExperimentNotFoundError,
     InvalidOperationError,
     MLNestException,
@@ -34,6 +35,7 @@ app.include_router(runs.router, prefix="/api")
 app.include_router(deploy.router, prefix="/api")
 
 @app.exception_handler(DatasetNotFoundError)
+@app.exception_handler(DatasetVersionNotFoundError)
 @app.exception_handler(ExperimentNotFoundError)
 @app.exception_handler(RunNotFoundError)
 async def not_found_handler(request: Request, exc: MLNestException) -> JSONResponse:

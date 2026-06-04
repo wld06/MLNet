@@ -16,6 +16,11 @@ class ExperimentUpdate(BaseModel):
     feature_columns: list[str] | None = None
 
 
+class LaunchRequest(BaseModel):
+    algorithms: list[str] | None = None  # None = all for problem_type
+    use_grid: bool = False  # True = expand param_grid into one run per combo
+
+
 class ExperimentRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
