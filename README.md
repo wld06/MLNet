@@ -1,8 +1,6 @@
 <div align="center">
 
-<img src="docs/assets/logo.png" alt="MLNest" width="120" />
-
-# MLNest
+# MLNet
 
 **Train, compare, and deploy machine learning models without writing a single line of code.**
 
@@ -124,20 +122,20 @@ alembic upgrade head
 
 Environment variables (see `.env.example`):
 
-| Variable | Default | Description |
-|---|---|---|
-| `DATABASE_URL` | `postgresql://user:password@localhost:5432/mlnest` | PostgreSQL connection |
-| `REDIS_URL` | `redis://localhost:6379/0` | Celery broker and cache |
-| `MINIO_ENDPOINT` | `localhost:9000` | Object storage |
-| `MINIO_ACCESS_KEY` | `minioadmin` | MinIO access key |
-| `MINIO_SECRET_KEY` | `minioadmin` | MinIO secret key |
-| `MINIO_BUCKET` | `mlnest-datasets` | Datasets bucket |
-| `MLFLOW_TRACKING_URI` | `http://localhost:5000` | Tracking server |
-| `SECRET_KEY` | — | **Change in production** |
-| `ACCESS_TOKEN_EXPIRE_MINUTES` | `60` | Token expiry |
-| `MAX_DATASET_SIZE_MB` | `500` | Max dataset size |
-| `CLEANING_PREVIEW_ROWS` | `1000` | Sample rows for previews |
-| `CLEANING_CACHE_TTL` | `3600` | Preview cache TTL (s) |
+| Variable                      | Default                                            | Description              |
+| ----------------------------- | -------------------------------------------------- | ------------------------ |
+| `DATABASE_URL`                | `postgresql://user:password@localhost:5432/mlnest` | PostgreSQL connection    |
+| `REDIS_URL`                   | `redis://localhost:6379/0`                         | Celery broker and cache  |
+| `MINIO_ENDPOINT`              | `localhost:9000`                                   | Object storage           |
+| `MINIO_ACCESS_KEY`            | `minioadmin`                                       | MinIO access key         |
+| `MINIO_SECRET_KEY`            | `minioadmin`                                       | MinIO secret key         |
+| `MINIO_BUCKET`                | `mlnest-datasets`                                  | Datasets bucket          |
+| `MLFLOW_TRACKING_URI`         | `http://localhost:5000`                            | Tracking server          |
+| `SECRET_KEY`                  | —                                                  | **Change in production** |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | `60`                                               | Token expiry             |
+| `MAX_DATASET_SIZE_MB`         | `500`                                              | Max dataset size         |
+| `CLEANING_PREVIEW_ROWS`       | `1000`                                             | Sample rows for previews |
+| `CLEANING_CACHE_TTL`          | `3600`                                             | Preview cache TTL (s)    |
 
 ---
 
@@ -159,6 +157,7 @@ GET    /api/datasets/{id}/versions
 GET    /api/datasets/{id}/versions/{v}
 POST   /api/datasets/{id}/versions/{v}/export
 ```
+
 </details>
 
 <details>
@@ -192,6 +191,7 @@ POST   /api/datasets/{id}/clean/apply-pipeline
 GET    /api/datasets/{id}/clean/history
 POST   /api/datasets/{id}/clean/rollback/{v}
 ```
+
 </details>
 
 <details>
@@ -213,6 +213,7 @@ GET    /api/runs/{id}/feature-importance
 GET    /api/runs/{id}/confusion-matrix
 POST   /api/runs/{id}/deploy
 ```
+
 </details>
 
 <details>
@@ -228,6 +229,7 @@ POST   /api/deployments/{id}/rotate-key
 GET    /api/deployments/{id}/export/docker
 GET    /api/deployments/{id}/export/notebook
 ```
+
 </details>
 
 <details>
@@ -237,6 +239,7 @@ GET    /api/deployments/{id}/export/notebook
 WS     /ws/experiments/{id}
 WS     /ws/datasets/{id}/clean
 ```
+
 </details>
 
 ---
