@@ -16,6 +16,10 @@ class DeploymentRead(BaseModel):
     last_called_at: datetime | None
 
 
+class DeployRequest(BaseModel):
+    name: str
+
+
 class PredictRequest(BaseModel):
     features: dict
 
