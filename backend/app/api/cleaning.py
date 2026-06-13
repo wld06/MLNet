@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Response, status
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_db
@@ -119,9 +119,20 @@ def preview_operation(dataset_id: int, body: PreviewRequest, db: Session = Depen
     return cleaning_service.preview_operations(db, dataset_id, body.operations)
 
 
-@router.post("/{dataset_id}/clean/apply-pipeline", response_model=DatasetVersionRead, status_code=status.HTTP_201_CREATED)
-def apply_pipeline(dataset_id: int, body: ApplyPipelineRequest, db: Session = Depends(get_db)) -> DatasetVersionRead:
-    return cleaning_service.apply_pipeline(db, dataset_id, body.operations, body.label)
+@router.post("/{dataset_id}/clean/apply-pipeline", response_model=None, status_code=status.HTTP_201_CREATED)
+def apply_pipeline(
+    dataset_id: int, body: ApplyPipelineRequest, response: Response, db: Session = Depends(get_db)
+) -> DatasetVersionRead | dict:
+    # Large datasets run in Celery and stream progress over WS /ws/datasets/{id}/clean.
+    if cleaning_service.is_large_dataset(db, dataset_id):
+        from app.workers.cleaning_tasks import apply_pipeline_task
+
+        task = apply_pipeline_task.delay(dataset_id, body.operations, body.label)
+        response.status_code = status.HTTP_202_ACCEPTED
+        return {"task_id": task.id, "status": "queued", "async": True, "dataset_id": dataset_id}
+
+    version = cleaning_service.apply_pipeline(db, dataset_id, body.operations, body.label)
+    return DatasetVersionRead.model_validate(version)
 
 
 @router.get("/{dataset_id}/clean/history")

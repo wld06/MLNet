@@ -1,4 +1,5 @@
 import uuid
+from collections.abc import Callable
 from io import BytesIO
 
 import numpy as np
@@ -10,6 +11,9 @@ from app.core.exceptions import DatasetNotFoundError, InvalidOperationError
 from app.core.storage import download_file, upload_file
 from app.db.models import DatasetVersion
 from app.services.dataset_service import get_dataset_or_404, get_version_or_404
+
+# Datasets above this row count run the pipeline in Celery + stream WS progress.
+LARGE_DATASET_ROWS = 100_000
 
 
 # ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -464,14 +468,21 @@ def preview_operations(db: Session, dataset_id: int, operations: list[dict]) -> 
 
 
 def apply_pipeline(
-    db: Session, dataset_id: int, operations: list[dict], label: str | None
+    db: Session,
+    dataset_id: int,
+    operations: list[dict],
+    label: str | None,
+    on_progress: "Callable[[int, int, str], None] | None" = None,
 ) -> DatasetVersion:
     get_dataset_or_404(db, dataset_id)
     version = _get_latest_version(db, dataset_id)
     df = _load_df(version.storage_path)
 
-    for op in operations:
+    total = len(operations)
+    for idx, op in enumerate(operations, start=1):
         df = _apply_single_op(df.copy(), op["operation"], op.get("parameters", {}))
+        if on_progress is not None:
+            on_progress(idx, total, op["operation"])
 
     buf = BytesIO()
     df.to_csv(buf, index=False)
@@ -496,6 +507,13 @@ def apply_pipeline(
     db.commit()
     db.refresh(new_version)
     return new_version
+
+
+def is_large_dataset(db: Session, dataset_id: int) -> bool:
+    """True when the latest version exceeds the async pipeline threshold."""
+    get_dataset_or_404(db, dataset_id)
+    version = _get_latest_version(db, dataset_id)
+    return (version.row_count or 0) > LARGE_DATASET_ROWS
 
 
 def get_history(db: Session, dataset_id: int) -> list[dict]:
