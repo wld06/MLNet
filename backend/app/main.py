@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from app.api import cleaning, datasets, deploy, experiments, runs
+from app.api import cleaning, datasets, deploy, experiments, runs, websockets
 from app.core.exceptions import (
     DatasetNotFoundError,
     DatasetTooLargeError,
@@ -33,6 +33,7 @@ app.include_router(cleaning.router, prefix="/api")
 app.include_router(experiments.router, prefix="/api")
 app.include_router(runs.router, prefix="/api")
 app.include_router(deploy.router, prefix="/api")
+app.include_router(websockets.router)
 
 @app.exception_handler(DatasetNotFoundError)
 @app.exception_handler(DatasetVersionNotFoundError)

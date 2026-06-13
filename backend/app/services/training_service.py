@@ -7,6 +7,7 @@ from sklearn.model_selection import cross_val_predict
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
+from app.core.events import experiment_channel, publish
 from app.core.exceptions import (
     DatasetVersionNotFoundError,
     ExperimentNotFoundError,
@@ -33,6 +34,7 @@ def train_run(db: Session, experiment_id: int, run_id: int) -> dict:
     run.status = "running"
     run.started_at = datetime.utcnow()
     db.commit()
+    _emit(experiment.id, "run_started", run_id=run.id, algorithm=run.algorithm)
 
     try:
         result = _execute_training(db, experiment, run)
@@ -41,6 +43,7 @@ def train_run(db: Session, experiment_id: int, run_id: int) -> dict:
         run.metrics = {"error": str(exc)}
         run.finished_at = datetime.utcnow()
         db.commit()
+        _emit(experiment.id, "run_failed", run_id=run.id, error=str(exc))
         _finalize_experiment(db, experiment)
         raise
 
@@ -50,9 +53,18 @@ def train_run(db: Session, experiment_id: int, run_id: int) -> dict:
     run.status = "completed"
     run.finished_at = datetime.utcnow()
     db.commit()
+    _emit(experiment.id, "run_completed", run_id=run.id, metrics=run.metrics)
 
     _finalize_experiment(db, experiment)
     return {"run_id": run.id, "status": run.status, "metrics": run.metrics}
+
+
+def _emit(experiment_id: int, event: str, **data) -> None:
+    """Publish a training progress event. Never let pub/sub failures break a run."""
+    try:
+        publish(experiment_channel(experiment_id), {"event": event, **data})
+    except Exception:
+        pass
 
 
 def _execute_training(db: Session, experiment: Experiment, run: Run) -> dict:
@@ -126,3 +138,4 @@ def _finalize_experiment(db: Session, experiment: Experiment) -> None:
     if remaining == 0 and experiment.status == "running":
         experiment.status = "completed"
         db.commit()
+        _emit(experiment.id, "experiment_completed", experiment_id=experiment.id)
