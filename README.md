@@ -306,6 +306,6 @@ Distributed under the **MIT** License. See [`LICENSE`](LICENSE) for details.
 
 <div align="center">
 
-Made with ❤️ and FastAPI · by [@wld06](https://github.com/wld06)
+Made by [@wld06](https://github.com/wld06)
 
 </div>
